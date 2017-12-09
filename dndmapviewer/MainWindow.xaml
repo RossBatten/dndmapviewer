@@ -1,0 +1,150 @@
+﻿<Window x:Class="dndmapviewer.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:sharpGL="clr-namespace:SharpGL.WPF;assembly=SharpGL.WPF"
+		xmlns:local="clr-namespace:dndmapviewer"
+        mc:Ignorable="d"
+        Title="Fantasy Map" Height="400" Width="525">
+	<Grid>
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition Width="10"/>
+			<ColumnDefinition Width="*"/>
+			<ColumnDefinition Width="10"/>
+			<ColumnDefinition Width="200"/>
+			<ColumnDefinition Width="10"/>
+		</Grid.ColumnDefinitions>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="30"/>
+			<RowDefinition Height="*"/>
+			<RowDefinition Height="10"/>
+		</Grid.RowDefinitions>
+		
+		<DockPanel Grid.Row="0" Grid.ColumnSpan="5">
+			<Menu DockPanel.Dock="Top">
+				<MenuItem Header="Map">
+					<MenuItem Header="New" IsEnabled="False"/>
+					<MenuItem Header="Open" Click="Open_Map_Click"/>
+					<MenuItem Header="Save" Click="Save_Map_Click"/>
+					<MenuItem Header="Save As..." IsEnabled="False"/>
+					<MenuItem Header="New Image" Click="New_Image_Click"/>
+				</MenuItem>
+				<MenuItem Header="Locations">
+					<MenuItem Header="New" IsEnabled="False"/>
+					<MenuItem Header="Open" Click="Open_Loc_Click"/>
+					<MenuItem Header="Save" Click="Save_Loc_Click"/>
+					<MenuItem Header="Save As..." IsEnabled="False"/>
+					<MenuItem Header="Add New" Click="Add_New_Loc_Click" IsEnabled="True"/>
+					<MenuItem Header="Remove Current" Click="Remove_Loc_Click" IsEnabled="True"/>
+				</MenuItem>
+				<MenuItem Header="Entities">
+					<MenuItem Header="New" IsEnabled="False"/>
+					<MenuItem Header="Open" Click="Open_Ent_Click"/>
+					<MenuItem Header="Save" Click="Save_Ent_Click"/>
+					<MenuItem Header="Save As..." IsEnabled="False"/>
+					<MenuItem Header="Add New" Click="Add_New_Ent_Click" IsEnabled="True"/>
+					<MenuItem Header="Remove Current" Click="Remove_Ent_Click" IsEnabled="True"/>
+				</MenuItem>
+			</Menu>
+			<StackPanel></StackPanel>
+		</DockPanel>
+		<TabControl Grid.Column="3" Grid.Row="1" SelectedIndex="{Binding SelectionTab}">
+			<TabItem Header="Locations">
+				<StackPanel Grid.Column="3" Grid.Row="1">
+					<ComboBox Name="LocationsCombo"
+					  ItemsSource="{Binding Locations}"
+					  DisplayMemberPath="name"
+					  SelectedIndex="{Binding SelectionL}"
+					  />
+					<TextBlock Text="Location name" Margin="0 5 0 0"/>
+					<TextBox Text="{Binding 
+					ElementName=LocationsCombo, 
+					Path=SelectedItem.name}"/>
+					<TextBlock Text="Description" Margin="0 5 0 0"/>
+					<TextBox Text="{Binding 
+					ElementName=LocationsCombo, 
+					Path=SelectedItem.description}" 
+					 MinLines="6"
+					 MaxLines="6"
+					 TextWrapping="Wrap"/>
+					<StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0 5 0 0">
+						<CheckBox IsChecked="{Binding ElementName=LocationsCombo, 
+					Path=SelectedItem.visible}" Content="Visible" Margin="0 0 10 0"/>
+						<CheckBox IsChecked="{Binding ElementName=LocationsCombo, 
+					Path=SelectedItem.label}" Content="Show label"/>
+					</StackPanel>
+					<StackPanel Margin="0 5 0 0" Orientation="Horizontal" HorizontalAlignment="Center">
+						<Button Content="Reset Colour" 
+						Margin="2" 
+						Click="Color_Click"
+						/>
+						<Button Content="Reset Position" 
+						Margin="2 2 2 2" 
+						Click="Reset_Click"
+						/>
+					</StackPanel>
+					<Button Content="Take Me Here" Margin="0 10 0 0" Click="TakeMe_Click"/>
+				</StackPanel>
+			</TabItem>
+			<TabItem Header="Entities">
+				<StackPanel Grid.Column="3" Grid.Row="1">
+					<ComboBox Name="EntitiesCombo"
+					  ItemsSource="{Binding Entities}"
+					  DisplayMemberPath="name"
+					  SelectedIndex="{Binding SelectionE}"
+					  />
+					<TextBlock Text="Location name" Margin="0 5 0 0"/>
+					<TextBox Text="{Binding 
+					ElementName=EntitiesCombo, 
+					Path=SelectedItem.name}"/>
+					<TextBlock Text="Speed" Margin="0 5 0 0"/>
+					<TextBox Text="{Binding 
+					ElementName=EntitiesCombo, 
+					Path=SelectedItem.speed}" />
+					<TextBlock Text="Short Range" Margin="0 5 0 0"/>
+					<TextBox Text="{Binding 
+					ElementName=EntitiesCombo, 
+					Path=SelectedItem.rangeShort}" />
+					<TextBlock Text="Long Range" Margin="0 5 0 0"/>
+					<TextBox Text="{Binding 
+					ElementName=EntitiesCombo, 
+					Path=SelectedItem.rangeLong}" />
+					<StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0 5 0 0">
+						<CheckBox IsChecked="{Binding ElementName=EntitiesCombo, 
+						Path=SelectedItem.label}" Content="Show label"/>
+					</StackPanel>
+					<StackPanel Margin="0 5 0 0" Orientation="Horizontal" HorizontalAlignment="Center">
+						<Button Content="Reset Colour" 
+						Margin="2" 
+						Click="Color_Click"
+						/>
+						<Button Content="Reset Position" 
+						Margin="2 2 2 2" 
+						Click="Reset_Click"
+						/>
+					</StackPanel>
+					<Button Content="Take Me Here" Margin="0 10 0 0" Click="TakeMe_Click"/>
+				</StackPanel>
+			</TabItem>
+		</TabControl>
+		
+		<sharpGL:OpenGLControl Name="GLControl"
+							   Grid.Column="1"
+							   Grid.Row="1"
+							   OpenGLVersion="OpenGL3_2" 
+							   OpenGLDraw="EDraw" 
+							   OpenGLInitialized="EInitialize"
+							   FrameRate="60" 
+							   MouseLeave="MouseLeave" 
+							   MouseLeftButtonDown="MouseLeftDown" 
+							   MouseLeftButtonUp="MouseLeftUp" 
+							   Resized="EResize" 
+							   MouseMove="MouseMove" 
+							   MouseWheel="MouseWheel"
+							   
+							   />
+		<Border Grid.Column="1" Grid.Row="1" BorderBrush="Black" BorderThickness="4"/>
+		
+	</Grid>
+</Window>
