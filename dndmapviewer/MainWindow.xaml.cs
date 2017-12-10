@@ -33,6 +33,7 @@ namespace dndmapviewer
 		public int SelectionTab { get; set; }
 
 		private OpenGLHandlers _GLHandlers;
+		private OpenGLHandlers _GLHandlersClone;
 		
 
 		public MainWindow()
@@ -42,7 +43,6 @@ namespace dndmapviewer
 			this.DataContext = this;
 			
 			_GLHandlers = new OpenGLHandlers(this, GLControl);
-			GLControl.DataContext = _GLHandlers;
 
 			Locations = new List<Location> { };
 			Entities = new List<Entity> { };
@@ -51,9 +51,12 @@ namespace dndmapviewer
 			SelectionL = -1;
 			SelectionE = -1;
 
+			_GLHandlersClone = new OpenGLHandlers(this, GLControl);
+			CloneWindow cloneWindow = new CloneWindow(_GLHandlersClone);
+			cloneWindow.Show();
 		}
 
-		
+
 
 		private void Color_Click(object sender, RoutedEventArgs e)
 		{
@@ -97,11 +100,15 @@ namespace dndmapviewer
 			{
 				_GLHandlers.LookAt[0] = Locations[SelectionL].position[0] * Map.map_width;
 				_GLHandlers.LookAt[1] = Locations[SelectionL].position[1] * Map.map_width * _GLHandlers.AspectRatio;
+				_GLHandlersClone.LookAt[0] = _GLHandlers.LookAt[0];
+				_GLHandlersClone.LookAt[1] = _GLHandlers.LookAt[1];
 			}
 			else if (SelectionE > -1)
 			{
 				_GLHandlers.LookAt[0] = Entities[SelectionE].position[0] * Map.map_width;
 				_GLHandlers.LookAt[1] = Entities[SelectionE].position[1] * Map.map_width * _GLHandlers.AspectRatio;
+				_GLHandlersClone.LookAt[0] = _GLHandlers.LookAt[0];
+				_GLHandlersClone.LookAt[1] = _GLHandlers.LookAt[1];
 			}
 		}
 
@@ -116,13 +123,14 @@ namespace dndmapviewer
 				string jsondata = File.ReadAllText(openFileDialog.FileName);
 				Map = JsonHelper.ToClass<Map>(jsondata);
 
-				mapTexture.Create(GLControl.OpenGL, Map.image_filename);
+				//mapTexture.Create(GLControl.OpenGL, Map.image_filename);
 
 				using (Bitmap image = new Bitmap(Map.image_filename))
 				{
 					if (image != null)
 					{
 						_GLHandlers.NewMap(image);
+						_GLHandlersClone.NewMap(image);
 					}
 				}
 			}
@@ -191,11 +199,16 @@ namespace dndmapviewer
 		public new void MouseMove(object sender, System.Windows.Input.MouseEventArgs args)
 		{
 			_GLHandlers.MouseMove(sender, args);
+			_GLHandlersClone.LookAt[0] = _GLHandlers.LookAt[0];
+			_GLHandlersClone.LookAt[1] = _GLHandlers.LookAt[1];
 		}
 
 		public new void MouseWheel(object sender, MouseWheelEventArgs args)
 		{
 			_GLHandlers.MouseWheel(sender, args);
+			_GLHandlersClone.Ptodratio = _GLHandlers.Ptodratio;
+			_GLHandlersClone.LookAt[0] = _GLHandlers.LookAt[0];
+			_GLHandlersClone.LookAt[1] = _GLHandlers.LookAt[1];
 		}
 
 		#endregion
@@ -220,7 +233,7 @@ namespace dndmapviewer
 			{
 				Map.image_filename = openFileDialog.FileName;
 
-				mapTexture.Create(GLControl.OpenGL, Map.image_filename);
+				//mapTexture.Create(GLControl.OpenGL, Map.image_filename);
 
 				using (Bitmap image = new Bitmap(Map.image_filename))
 				{
@@ -228,6 +241,7 @@ namespace dndmapviewer
 					if (image != null)
 					{
 						_GLHandlers.NewMap(image);
+						_GLHandlersClone.NewMap(image);
 					}
 				}
 			}

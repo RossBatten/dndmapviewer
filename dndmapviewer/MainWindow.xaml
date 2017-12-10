@@ -47,7 +47,6 @@
 					<MenuItem Header="Remove Current" Click="Remove_Ent_Click" IsEnabled="True"/>
 				</MenuItem>
 			</Menu>
-			<StackPanel></StackPanel>
 		</DockPanel>
 		<TabControl Grid.Column="3" Grid.Row="1" SelectedIndex="{Binding SelectionTab}">
 			<TabItem Header="Locations">

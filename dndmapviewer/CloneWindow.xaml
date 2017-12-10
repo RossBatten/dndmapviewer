@@ -1,0 +1,31 @@
+﻿<Window x:Class="dndmapviewer.CloneWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+		xmlns:sharpGL="clr-namespace:SharpGL.WPF;assembly=SharpGL.WPF"
+        xmlns:local="clr-namespace:dndmapviewer"
+        mc:Ignorable="d"
+        Title="Fantasy Map" Height="300" Width="300">
+    <Grid>
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition Width="10"/>
+			<ColumnDefinition Width="*"/>
+			<ColumnDefinition Width="10"/>
+		</Grid.ColumnDefinitions>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="10"/>
+			<RowDefinition Height="*"/>
+			<RowDefinition Height="10"/>
+		</Grid.RowDefinitions>
+		<sharpGL:OpenGLControl Name="GLControlClone"
+							   Grid.Column="1"
+							   Grid.Row="1"
+							   OpenGLVersion="OpenGL3_2" 
+							   OpenGLDraw="EDraw" 
+							   OpenGLInitialized="EInitialize"
+							   Resized="EResize"
+							   FrameRate="60" 
+							   />
+    </Grid>
+</Window>

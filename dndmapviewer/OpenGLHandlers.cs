@@ -13,13 +13,15 @@ using System.Windows.Input;
 
 namespace dndmapviewer
 {
-	class OpenGLHandlers
+	public class OpenGLHandlers
 	{
 
 		private MainWindow _window;
 		private OpenGLControl _GLControl;
+		private OpenGL _gl;
 
 		public List<Texture> mapTextures;
+		//public List<Bitmap> mapBitmaps;
 		public List<float[]> mapGrid = new List<float[]> { };
 		public List<float[]> mapTexCoords = new List<float[]> { };
 
@@ -52,7 +54,7 @@ namespace dndmapviewer
 			//LookAt = new double[2] { _window.Map.map_width / 2.0, _window.Map.map_width*AspectRatio / 2.0 };
 			Ptodratio = _windowwidth / _window.Map.map_width;
 
-			ImageFunctions.TileImage(_GLControl, image, out mapTextures, out mapGrid, out mapTexCoords);
+			ImageFunctions.TileImage(_gl, image, out mapTextures, out mapGrid, out mapTexCoords);
 
 			//foreach (float[] grid in mapGrid) {
 			//	Console.Write(grid[0].ToString() + "-" + grid[2].ToString()+", ");
@@ -63,84 +65,87 @@ namespace dndmapviewer
 
 		public void EDraw(object sender, SharpGL.SceneGraph.OpenGLEventArgs args)
 		{
-			//  Get the OpenGL instance that's been passed to us.
-			OpenGL gl = args.OpenGL;
 
 			//  Clear the color and depth buffers.
-			gl.Clear(OpenGL.GL_COLOR_BUFFER_BIT | OpenGL.GL_DEPTH_BUFFER_BIT);
+			_gl.Clear(OpenGL.GL_COLOR_BUFFER_BIT | OpenGL.GL_DEPTH_BUFFER_BIT);
 
 			if (_window.Map != null)
 			{
 
-				gl.MatrixMode(OpenGL.GL_PROJECTION);
-				gl.LoadIdentity();
-				gl.Ortho(LookAt[0] - _windowwidth / Ptodratio / 2.0,
-					LookAt[0] + _windowwidth / Ptodratio / 2.0,
-					LookAt[1] - _windowheight / Ptodratio / 2.0,
-					LookAt[1] + _windowheight / Ptodratio / 2.0,
+				_gl.MatrixMode(OpenGL.GL_PROJECTION);
+				_gl.LoadIdentity();
+				_gl.Ortho(LookAt[0] - _gl.RenderContextProvider.Width / Ptodratio / 2.0,
+					LookAt[0] + _gl.RenderContextProvider.Width / Ptodratio / 2.0,
+					LookAt[1] - _gl.RenderContextProvider.Height / Ptodratio / 2.0,
+					LookAt[1] + _gl.RenderContextProvider.Height / Ptodratio / 2.0,
 					-100.0,
 					100.0);
-				
-				gl.MatrixMode(OpenGL.GL_MODELVIEW);
 
-				gl.Enable(OpenGL.GL_TEXTURE_2D);
-				gl.Color(new float[] { 1.0f, 1.0f, 1.0f, 1.0f });
+				//Console.WriteLine(_windowwidth);
+
+				_gl.MatrixMode(OpenGL.GL_MODELVIEW);
+
+				_gl.Enable(OpenGL.GL_TEXTURE_2D);
+				_gl.Color(new float[] { 1.0f, 1.0f, 1.0f, 1.0f });
 				for (int i = 0; i< mapTextures.Count; i++)
 				{
-					mapTextures[i].Bind(gl);
-					gl.LoadIdentity();
-					gl.Begin(OpenGL.GL_QUADS);
-					gl.TexCoord(mapTexCoords[i][0], mapTexCoords[i][2]);
-					gl.Vertex(mapGrid[i][0] * _window.Map.map_width,
-						mapGrid[i][1] * _window.Map.map_width * AspectRatio, 0.0f);
-					gl.TexCoord(mapTexCoords[i][0], mapTexCoords[i][3]);
-					gl.Vertex(mapGrid[i][0] * _window.Map.map_width,
-						mapGrid[i][3] * _window.Map.map_width * AspectRatio, 0.0f);
-					gl.TexCoord(mapTexCoords[i][1], mapTexCoords[i][3]);
-					gl.Vertex(mapGrid[i][2] * _window.Map.map_width,
-						mapGrid[i][3] * _window.Map.map_width * AspectRatio, 0.0f);
-					gl.TexCoord(mapTexCoords[i][1], mapTexCoords[i][2]);
-					gl.Vertex(mapGrid[i][2] * _window.Map.map_width,
-						mapGrid[i][1] * _window.Map.map_width*AspectRatio, 0.0f);
-					gl.End();
-					mapTextures[i].Pop(gl);
-				}
-				gl.PopMatrix();
-				gl.Disable(OpenGL.GL_TEXTURE_2D);
+					mapTextures[i].Bind(_gl);
 
-				gl.LoadIdentity();
-				gl.PointSize(PointSize);
-				gl.Begin(OpenGL.GL_POINTS);
+					_gl.LoadIdentity();
+					_gl.Begin(OpenGL.GL_QUADS);
+					_gl.TexCoord(mapTexCoords[i][0], mapTexCoords[i][2]);
+					_gl.Vertex(mapGrid[i][0] * _window.Map.map_width,
+						mapGrid[i][1] * _window.Map.map_width * AspectRatio, 0.0f);
+					_gl.TexCoord(mapTexCoords[i][0], mapTexCoords[i][3]);
+					_gl.Vertex(mapGrid[i][0] * _window.Map.map_width,
+						mapGrid[i][3] * _window.Map.map_width * AspectRatio, 0.0f);
+					_gl.TexCoord(mapTexCoords[i][1], mapTexCoords[i][3]);
+					_gl.Vertex(mapGrid[i][2] * _window.Map.map_width,
+						mapGrid[i][3] * _window.Map.map_width * AspectRatio, 0.0f);
+					_gl.TexCoord(mapTexCoords[i][1], mapTexCoords[i][2]);
+					_gl.Vertex(mapGrid[i][2] * _window.Map.map_width,
+						mapGrid[i][1] * _window.Map.map_width*AspectRatio, 0.0f);
+					_gl.End();
+
+					mapTextures[i].Pop(_gl);
+					//mapTextures[i].Destroy(gl);
+				}
+				_gl.PopMatrix();
+				_gl.Disable(OpenGL.GL_TEXTURE_2D);
+
+				_gl.LoadIdentity();
+				_gl.PointSize(PointSize);
+				_gl.Begin(OpenGL.GL_POINTS);
 				foreach (Location loc in _window.Locations)
 				{
 					if (loc.visible)
 					{
-						gl.Color(loc.color[0],loc.color[1],loc.color[2]);
-						gl.Vertex(loc.position[0]* _window.Map.map_width,
+						_gl.Color(loc.color[0],loc.color[1],loc.color[2]);
+						_gl.Vertex(loc.position[0]* _window.Map.map_width,
 							loc.position[1]* _window.Map.map_width * AspectRatio, 0.0);
 					}
 				}
 				foreach (Entity ent in _window.Entities)
 				{
-					gl.Color(ent.color[0], ent.color[1], ent.color[2]);
-					gl.Vertex(ent.position[0] * _window.Map.map_width,
+					_gl.Color(ent.color[0], ent.color[1], ent.color[2]);
+					_gl.Vertex(ent.position[0] * _window.Map.map_width,
 						ent.position[1] * _window.Map.map_width * AspectRatio, 0.0);
 				}
 
-				gl.End();
-				gl.PopMatrix();
+				_gl.End();
+				_gl.PopMatrix();
 
 				foreach (Location loc in _window.Locations)
 				{
 					if (loc.label && loc.visible)
 					{
-						gl.LoadIdentity();
-						gl.Translate(loc.position[0] * _window.Map.map_width + PointSize / Ptodratio,
+						_gl.LoadIdentity();
+						_gl.Translate(loc.position[0] * _window.Map.map_width + PointSize / Ptodratio,
 							loc.position[1] * _window.Map.map_width * AspectRatio,
 							0);
-						gl.Scale(PointSize*2 / Ptodratio, PointSize*2 / Ptodratio, 0);
-						gl.Color(loc.color[0], loc.color[1], loc.color[2]);
-						gl.DrawText3D("Arial Bold", 10, 0, 0, loc.name);
+						_gl.Scale(PointSize*2 / Ptodratio, PointSize*2 / Ptodratio, 0);
+						_gl.Color(loc.color[0], loc.color[1], loc.color[2]);
+						_gl.DrawText3D("Arial Bold", 10, 0, 0, loc.name);
 					}
 				}
 
@@ -148,92 +153,91 @@ namespace dndmapviewer
 				{
 					if (ent.label)
 					{
-						gl.LoadIdentity();
-						gl.Translate(ent.position[0] * _window.Map.map_width + PointSize / Ptodratio,
+						_gl.LoadIdentity();
+						_gl.Translate(ent.position[0] * _window.Map.map_width + PointSize / Ptodratio,
 							ent.position[1] * _window.Map.map_width * AspectRatio,
 							0);
-						gl.Scale(PointSize * 2 / Ptodratio, PointSize * 2 / Ptodratio, 0);
-						gl.Color(ent.color[0], ent.color[1], ent.color[2]);
-						gl.DrawText3D("Arial Bold", 10, 0, 0, ent.name);
+						_gl.Scale(PointSize * 2 / Ptodratio, PointSize * 2 / Ptodratio, 0);
+						_gl.Color(ent.color[0], ent.color[1], ent.color[2]);
+						_gl.DrawText3D("Arial Bold", 10, 0, 0, ent.name);
 					}
 				}
 
 				foreach (Entity ent in _window.Entities)
 				{
 
-					gl.LoadIdentity();
-					gl.Begin(OpenGL.GL_LINE_LOOP);
-					gl.Color(ent.color[0], ent.color[1], ent.color[2]);
+					_gl.LoadIdentity();
+					_gl.Begin(OpenGL.GL_LINE_LOOP);
+					_gl.Color(ent.color[0], ent.color[1], ent.color[2]);
 					for (float i = 0; i < 60;i+=1.0f)
 					{
-						gl.Vertex(ent.position[0] * _window.Map.map_width + ent.speed*Math.Cos(i/60.0*Math.PI*2),
+						_gl.Vertex(ent.position[0] * _window.Map.map_width + ent.speed*Math.Cos(i/60.0*Math.PI*2),
 						ent.position[1] * _window.Map.map_width * AspectRatio + ent.speed * Math.Sin(i / 60.0 * Math.PI * 2),
 						0.0);
 					}
-					gl.End();
+					_gl.End();
 
-					gl.LineStipple(4, 0xAAAA);
-					gl.Begin(OpenGL.GL_LINE_LOOP);
+					_gl.LineStipple(4, 0xAAAA);
+					_gl.Begin(OpenGL.GL_LINE_LOOP);
 					for (float i = 0; i < 60; i += 1.0f)
 					{
-						gl.Vertex(ent.position[0] * _window.Map.map_width + ent.rangeShort * Math.Cos(i / 60.0 * Math.PI * 2),
+						_gl.Vertex(ent.position[0] * _window.Map.map_width + ent.rangeShort * Math.Cos(i / 60.0 * Math.PI * 2),
 						ent.position[1] * _window.Map.map_width * AspectRatio + ent.rangeShort * Math.Sin(i / 60.0 * Math.PI * 2),
 						0.0);
 					}
-					gl.End();
+					_gl.End();
 
-					gl.LineStipple(2, 0xAAAA);
-					gl.Begin(OpenGL.GL_LINE_LOOP);
+					_gl.LineStipple(2, 0xAAAA);
+					_gl.Begin(OpenGL.GL_LINE_LOOP);
 					for (float i = 0; i < 60; i += 1.0f)
 					{
-						gl.Vertex(ent.position[0] * _window.Map.map_width + ent.rangeLong * Math.Cos(i / 60.0 * Math.PI * 2),
+						_gl.Vertex(ent.position[0] * _window.Map.map_width + ent.rangeLong * Math.Cos(i / 60.0 * Math.PI * 2),
 						ent.position[1] * _window.Map.map_width * AspectRatio + ent.rangeLong * Math.Sin(i / 60.0 * Math.PI * 2),
 						0.0);
 					}
-					gl.End();
+					_gl.End();
 
-					gl.LineStipple(2, 0xFFFF);
+					_gl.LineStipple(2, 0xFFFF);
 				}
 
 				//Draw crosshairs
-				gl.LoadIdentity();
-				gl.Begin(OpenGL.GL_LINES);
-				gl.Color(1.0f, 1.0f, 1.0f, 1.0f);
-				gl.Vertex(LookAt[0] - _windowwidth / Ptodratio / 2.0 * CrossHairRatio, LookAt[1], 0.0f);
-				gl.Vertex(LookAt[0] + _windowwidth / Ptodratio / 2.0 * CrossHairRatio, LookAt[1], 0.0f);
-				gl.Vertex(LookAt[0],LookAt[1] - _windowwidth / Ptodratio / 2.0 * CrossHairRatio, 0.0f);
-				gl.Vertex(LookAt[0], LookAt[1] + _windowwidth / Ptodratio / 2.0 * CrossHairRatio, 0.0f);
-				gl.End();
-				gl.PopMatrix();
+				_gl.LoadIdentity();
+				_gl.Begin(OpenGL.GL_LINES);
+				_gl.Color(1.0f, 1.0f, 1.0f, 1.0f);
+				_gl.Vertex(LookAt[0] - _windowwidth / Ptodratio / 2.0 * CrossHairRatio, LookAt[1], 0.0f);
+				_gl.Vertex(LookAt[0] + _windowwidth / Ptodratio / 2.0 * CrossHairRatio, LookAt[1], 0.0f);
+				_gl.Vertex(LookAt[0],LookAt[1] - _windowwidth / Ptodratio / 2.0 * CrossHairRatio, 0.0f);
+				_gl.Vertex(LookAt[0], LookAt[1] + _windowwidth / Ptodratio / 2.0 * CrossHairRatio, 0.0f);
+				_gl.End();
+				_gl.PopMatrix();
 
-				gl.Flush();
+				_gl.Flush();
 			}
 
 		}
 
 		public void EInitialize(object sender, SharpGL.SceneGraph.OpenGLEventArgs args)
 		{
-			OpenGL gl = args.OpenGL;
-			_windowwidth = gl.RenderContextProvider.Width;
-			_windowheight = gl.RenderContextProvider.Height;
+			_gl = args.OpenGL;
+			_windowwidth = _gl.RenderContextProvider.Width;
+			_windowheight = _gl.RenderContextProvider.Height;
+			//_windowwidth = _window.GLControl.Width;
+			//_windowheight = _window.GLControl.Height;
 
-			gl.Disable(OpenGL.GL_DEPTH_TEST);
-			gl.Enable(OpenGL.GL_LINE_STIPPLE);
-			gl.Enable(OpenGL.GL_POINT_SIZE);
-			gl.Enable(OpenGL.GL_POINT_SMOOTH);
-			gl.Enable(OpenGL.GL_LINE_WIDTH);
-			gl.LineWidth(2.0f);
-
-			Console.WriteLine(_windowwidth.ToString() + " , " + _windowheight.ToString());
+			_gl.Disable(OpenGL.GL_DEPTH_TEST);
+			_gl.Enable(OpenGL.GL_LINE_STIPPLE);
+			_gl.Enable(OpenGL.GL_POINT_SIZE);
+			_gl.Enable(OpenGL.GL_POINT_SMOOTH);
+			_gl.Enable(OpenGL.GL_LINE_WIDTH);
+			_gl.LineWidth(2.0f);
 
 			CrossHairRatio = 0.1;
 		}
 
 		public void EResize(object sender, SharpGL.SceneGraph.OpenGLEventArgs args)
 		{
-			OpenGL gl = args.OpenGL;
-			_windowwidth = gl.RenderContextProvider.Width;
-			_windowheight = gl.RenderContextProvider.Height;
+			_windowwidth = _gl.RenderContextProvider.Width;
+			_windowheight = _gl.RenderContextProvider.Height;
 		}
 
 		public void MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)

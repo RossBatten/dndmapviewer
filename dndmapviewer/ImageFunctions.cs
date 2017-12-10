@@ -1,4 +1,5 @@
-﻿using SharpGL.SceneGraph.Assets;
+﻿using SharpGL;
+using SharpGL.SceneGraph.Assets;
 using SharpGL.WPF;
 using System;
 using System.Collections.Generic;
@@ -28,13 +29,13 @@ namespace dndmapviewer
 			return CroppedImage;
 		}
 
-		public static void TileImage(OpenGLControl GLControl,Bitmap image, out List<Texture> textures, out List<float[]> mapGrid, out List<float[]> mapTexCoords)
+		public static void TileImage(OpenGL gl,Bitmap image, out List<Texture> textures, out List<float[]> mapGrid, out List<float[]> mapTexCoords)
 		{
-			textures = new List<Texture> { };
 			mapGrid = new List<float[]> { };
 			mapTexCoords = new List<float[]> { };
+			textures = new List<Texture> { };
 
-			int maxpix = 500;
+			int maxpix = 900;
 
 			for (int i = 0; i <= image.Size.Width / maxpix; i++)
 			{
@@ -114,17 +115,15 @@ namespace dndmapviewer
 					grid[1] = 1 - grid[1];
 					grid[3] = 1 - grid[3];
 
-					Console.WriteLine(origin.X.ToString() + "," + (origin.X+size.Width).ToString());
+					//Console.WriteLine(origin.X.ToString() + "," + (origin.X+size.Width).ToString());
 
 					Bitmap croppedImage = CropImage(image, new Rectangle(origin, size));
 
 					Texture texture = new Texture();
-					texture.Create(GLControl.OpenGL, croppedImage);
+					texture.Create(gl, croppedImage);
 					textures.Add(texture);
 					mapGrid.Add(grid);
 					mapTexCoords.Add(texCoords);
-
-					
 					
 				}
 			}
