@@ -141,7 +141,8 @@
 							   Resized="EResize" 
 							   MouseMove="MouseMove" 
 							   MouseWheel="MouseWheel"
-							   
+							   MouseRightButtonDown="MouseRightDown"
+							   MouseRightButtonUp="MouseRightUp"
 							   />
 		<Border Grid.Column="1" Grid.Row="1" BorderBrush="Black" BorderThickness="4"/>
 		

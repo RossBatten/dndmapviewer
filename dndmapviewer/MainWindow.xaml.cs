@@ -196,11 +196,25 @@ namespace dndmapviewer
 			_GLHandlers.MouseLeftUp(sender, args);
 		}
 
+		public void MouseRightDown(object sender, MouseButtonEventArgs args)
+		{
+			_GLHandlers.MouseRightDown(sender, args);
+		}
+
+		public void MouseRightUp(object sender, MouseButtonEventArgs args)
+		{
+			_GLHandlers.MouseRightUp(sender, args);
+			OnPropertyChanged(nameof(Locations));
+			OnPropertyChanged(nameof(Entities));
+		}
+
 		public new void MouseMove(object sender, System.Windows.Input.MouseEventArgs args)
 		{
 			_GLHandlers.MouseMove(sender, args);
 			_GLHandlersClone.LookAt[0] = _GLHandlers.LookAt[0];
 			_GLHandlersClone.LookAt[1] = _GLHandlers.LookAt[1];
+			_GLHandlersClone.TargetPos[0] = _GLHandlers.TargetPos[0];
+			_GLHandlersClone.TargetPos[1] = _GLHandlers.TargetPos[1];
 		}
 
 		public new void MouseWheel(object sender, MouseWheelEventArgs args)

@@ -27,11 +27,14 @@ namespace dndmapviewer
 
 		private bool _leftDragging = false;
 		private bool _rightDragging = false;
-		private System.Windows.Point _lastPos; //In pixels from top left
-		private System.Windows.Point _currPos;
+		private System.Windows.Point _lastLeftPos; //In pixels from top left
+		private System.Windows.Point _lastRightPos;
+		private System.Windows.Point _currLeftPos;
+		private System.Windows.Point _currRightPos;
 		private double _windowwidth; //In metres
 		private double _windowheight; //In metres
 		public double[] LookAt; //In metres
+		public double[] TargetPos;
 		public double Ptodratio; //Pixels per metre
 		public double AspectRatio;
 		public double CrossHairRatio;
@@ -43,6 +46,7 @@ namespace dndmapviewer
 			_GLControl = GLControl;
 			PointSize = 10;
 			LookAt = new double[] { 0, 0 };
+			TargetPos = new double[] { 0, 0 };
 			Ptodratio = 10000;
 		}
 
@@ -55,11 +59,6 @@ namespace dndmapviewer
 			Ptodratio = _windowwidth / _window.Map.map_width;
 
 			ImageFunctions.TileImage(_gl, image, out mapTextures, out mapGrid, out mapTexCoords);
-
-			//foreach (float[] grid in mapGrid) {
-			//	Console.Write(grid[0].ToString() + "-" + grid[2].ToString()+", ");
-			//	Console.WriteLine(grid[1].ToString() + "-" + grid[3].ToString());
-			//}
 
 		}
 
@@ -249,7 +248,27 @@ namespace dndmapviewer
 		public void MouseLeftDown(object sender, MouseButtonEventArgs e)
 		{
 			_leftDragging = true;
-			_lastPos = e.GetPosition(_GLControl);
+			_lastLeftPos = e.GetPosition(_GLControl);
+		}
+
+		public void MouseRightDown(object sender, MouseButtonEventArgs e)
+		{
+			if (_window.SelectionTab == 0 && _window.SelectionL >= 0)
+			{
+				_rightDragging = true;
+				_lastRightPos = e.GetPosition(_GLControl);
+
+				TargetPos = new double[] { (_lastRightPos.X - _windowwidth/2)/Ptodratio  + LookAt[0],
+					(0.5*_windowheight-_lastRightPos.Y) / Ptodratio + LookAt[1]};
+			}
+			else if (_window.SelectionTab == 1 && _window.SelectionE >= 0)
+			{
+				_rightDragging = true;
+				_lastRightPos = e.GetPosition(_GLControl);
+
+				TargetPos = new double[] { (_lastRightPos.X - _windowwidth/2)/Ptodratio  + LookAt[0],
+					(0.5*_windowheight-_lastRightPos.Y) / Ptodratio + LookAt[1]};
+			}
 		}
 
 		public void MouseLeftUp(object sender, MouseButtonEventArgs e)
@@ -257,14 +276,41 @@ namespace dndmapviewer
 			_leftDragging = false;
 		}
 
+		public void MouseRightUp(object sender, MouseButtonEventArgs e)
+		{
+			if (_rightDragging)
+			{
+				if (_window.SelectionTab == 0 && _window.SelectionL >= 0)
+				{
+					_window.Locations[_window.SelectionL].position[0] = TargetPos[0] / (_window.Map.map_width);
+					_window.Locations[_window.SelectionL].position[1] = TargetPos[1] / (_window.Map.map_width * AspectRatio);
+				}
+				else if (_window.SelectionTab == 1 && _window.SelectionE >= 0)
+				{
+					_window.Entities[_window.SelectionE].position[0] = TargetPos[0] / (_window.Map.map_width);
+					_window.Entities[_window.SelectionE].position[1] = TargetPos[1]/(_window.Map.map_width*AspectRatio);
+				}
+			}
+			_rightDragging = false;
+		}
+
 		public void MouseMove(object sender, System.Windows.Input.MouseEventArgs e)
 		{
+			
 			if (_leftDragging)
 			{
-				_currPos = e.GetPosition(_GLControl);
-				LookAt[0] -= (_currPos.X - _lastPos.X) / Ptodratio;
-				LookAt[1] += (_currPos.Y - _lastPos.Y) / Ptodratio;
-				_lastPos = _currPos;
+				_currLeftPos = e.GetPosition(_GLControl);
+				LookAt[0] -= (_currLeftPos.X - _lastLeftPos.X) / Ptodratio;
+				LookAt[1] += (_currLeftPos.Y - _lastLeftPos.Y) / Ptodratio;
+				_lastLeftPos = new System.Windows.Point(_currLeftPos.X, _currLeftPos.Y);
+			}
+			if (_rightDragging)
+			{
+				_currRightPos = e.GetPosition(_GLControl);
+				TargetPos[0] += (_currRightPos.X - _lastRightPos.X) / Ptodratio;
+				TargetPos[1] -= (_currRightPos.Y - _lastRightPos.Y) / Ptodratio;
+				_lastRightPos = new System.Windows.Point(_currRightPos.X, _currRightPos.Y);
+				Console.WriteLine(TargetPos[0] + ", " + TargetPos[1]);
 			}
 		}
 
