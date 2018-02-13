@@ -26,8 +26,8 @@ namespace dndmapviewer
 		private string _entitiesFilename = "";
 
 		public Map Map = null;
-		public List<Location> Locations { get; set; }
-		public List<Entity> Entities { get; set; }
+		public ObservableCollection<Location> Locations { get; set; }
+		public ObservableCollection<Entity> Entities { get; set; }
 		public int SelectionL { get; set; }
 		public int SelectionE { get; set; }
 		public int SelectionTab { get; set; }
@@ -44,8 +44,8 @@ namespace dndmapviewer
 			
 			_GLHandlers = new OpenGLHandlers(this, GLControl);
 
-			Locations = new List<Location> { };
-			Entities = new List<Entity> { };
+			Locations = new ObservableCollection<Location> { };
+			Entities = new ObservableCollection<Entity> { };
 
 			SelectionTab = 0;
 			SelectionL = -1;
@@ -145,7 +145,7 @@ namespace dndmapviewer
 				_locationsFilename = openFileDialog.FileName;
 
 				string jsondata = File.ReadAllText(openFileDialog.FileName);
-				Locations = JsonHelper.ToClass<List<Location>>(jsondata);
+				Locations = JsonHelper.ToClass<ObservableCollection<Location>>(jsondata);
 				OnPropertyChanged(nameof(Locations));
 			}
 		}
@@ -159,7 +159,7 @@ namespace dndmapviewer
 				_entitiesFilename = openFileDialog.FileName;
 
 				string jsondata = File.ReadAllText(openFileDialog.FileName);
-				Entities = JsonHelper.ToClass<List<Entity>>(jsondata);
+				Entities = JsonHelper.ToClass<ObservableCollection<Entity>>(jsondata);
 				OnPropertyChanged(nameof(Entities));
 			}
 		}
@@ -184,6 +184,7 @@ namespace dndmapviewer
 		public new void MouseLeave(object sender, System.Windows.Input.MouseEventArgs args)
 		{
 			_GLHandlers.MouseLeave(sender, args);
+			_GLHandlersClone.SourcePos = _GLHandlers.SourcePos;
 		}
 
 		public void MouseLeftDown(object sender, MouseButtonEventArgs args)
@@ -199,11 +200,13 @@ namespace dndmapviewer
 		public void MouseRightDown(object sender, MouseButtonEventArgs args)
 		{
 			_GLHandlers.MouseRightDown(sender, args);
+			_GLHandlersClone.SourcePos = _GLHandlers.SourcePos;
 		}
 
 		public void MouseRightUp(object sender, MouseButtonEventArgs args)
 		{
 			_GLHandlers.MouseRightUp(sender, args);
+			_GLHandlersClone.SourcePos = _GLHandlers.SourcePos;
 			OnPropertyChanged(nameof(Locations));
 			OnPropertyChanged(nameof(Entities));
 		}
@@ -267,6 +270,18 @@ namespace dndmapviewer
 			File.WriteAllText(_mapFilename, jsondata);
 		}
 
+		private void Save_Map_As_Click(object sender, RoutedEventArgs e)
+		{
+			SaveFileDialog saveFileDialog = new SaveFileDialog();
+			saveFileDialog.Filter = "map files|*.map.json";
+			if (saveFileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+			{
+				_mapFilename = saveFileDialog.FileName;
+				string jsondata = JsonHelper.FromClass(Map);
+				File.WriteAllText(_mapFilename, jsondata);
+			}
+		}
+
 		private void Save_Loc_Click(object sender, RoutedEventArgs e)
 		{
 			string jsondata = JsonHelper.FromClass(Locations);
@@ -311,10 +326,12 @@ namespace dndmapviewer
 		{
 			if (SelectionTab == 0 && SelectionL>= 0)
 			{
-				Locations.RemoveAt(SelectionL);
+				
 				SelectionL--;
-				OnPropertyChanged(nameof(Locations));
 				OnPropertyChanged(nameof(SelectionL));
+				Locations.RemoveAt(SelectionL+1);
+				OnPropertyChanged(nameof(Locations));
+				
 			}
 		}
 
@@ -322,10 +339,10 @@ namespace dndmapviewer
 		{
 			if (SelectionTab == 1 && SelectionE >= 0)
 			{
-				Locations.RemoveAt(SelectionE);
+				Entities.RemoveAt(SelectionE);
 				SelectionE--;
-				OnPropertyChanged(nameof(Entities));
 				OnPropertyChanged(nameof(SelectionE));
+				OnPropertyChanged(nameof(Entities));
 			}
 		}
 	}

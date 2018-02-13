@@ -35,6 +35,7 @@ namespace dndmapviewer
 		private double _windowheight; //In metres
 		public double[] LookAt; //In metres
 		public double[] TargetPos;
+		public double[] SourcePos;
 		public double Ptodratio; //Pixels per metre
 		public double AspectRatio;
 		public double CrossHairRatio;
@@ -46,6 +47,7 @@ namespace dndmapviewer
 			_GLControl = GLControl;
 			PointSize = 10;
 			LookAt = new double[] { 0, 0 };
+			SourcePos = null;
 			TargetPos = new double[] { 0, 0 };
 			Ptodratio = 10000;
 		}
@@ -111,6 +113,15 @@ namespace dndmapviewer
 				}
 				_gl.PopMatrix();
 				_gl.Disable(OpenGL.GL_TEXTURE_2D);
+
+				if (SourcePos != null)
+				{
+					_gl.LoadIdentity();
+					_gl.Begin(OpenGL.GL_LINES);
+					_gl.Vertex(SourcePos[0], SourcePos[1], 0);
+					_gl.Vertex(TargetPos[0], TargetPos[1], 0);
+					_gl.End();
+				}
 
 				_gl.LoadIdentity();
 				_gl.PointSize(PointSize);
@@ -243,6 +254,7 @@ namespace dndmapviewer
 		{
 			_leftDragging = false;
 			_rightDragging = false;
+			SourcePos = null;
 		}
 
 		public void MouseLeftDown(object sender, MouseButtonEventArgs e)
@@ -258,6 +270,11 @@ namespace dndmapviewer
 				_rightDragging = true;
 				_lastRightPos = e.GetPosition(_GLControl);
 
+				SourcePos = new double[] {
+					_window.Locations[_window.SelectionL].position[0]*_window.Map.map_width,
+					_window.Locations[_window.SelectionL].position[1]*_window.Map.map_width*AspectRatio,
+				};
+
 				TargetPos = new double[] { (_lastRightPos.X - _windowwidth/2)/Ptodratio  + LookAt[0],
 					(0.5*_windowheight-_lastRightPos.Y) / Ptodratio + LookAt[1]};
 			}
@@ -265,6 +282,11 @@ namespace dndmapviewer
 			{
 				_rightDragging = true;
 				_lastRightPos = e.GetPosition(_GLControl);
+
+				SourcePos = new double[] {
+					_window.Entities[_window.SelectionE].position[0]*_window.Map.map_width,
+					_window.Entities[_window.SelectionE].position[1]*_window.Map.map_width*AspectRatio,
+				};
 
 				TargetPos = new double[] { (_lastRightPos.X - _windowwidth/2)/Ptodratio  + LookAt[0],
 					(0.5*_windowheight-_lastRightPos.Y) / Ptodratio + LookAt[1]};
@@ -290,6 +312,8 @@ namespace dndmapviewer
 					_window.Entities[_window.SelectionE].position[0] = TargetPos[0] / (_window.Map.map_width);
 					_window.Entities[_window.SelectionE].position[1] = TargetPos[1]/(_window.Map.map_width*AspectRatio);
 				}
+
+				SourcePos = null;
 			}
 			_rightDragging = false;
 		}

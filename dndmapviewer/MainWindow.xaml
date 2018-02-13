@@ -27,7 +27,7 @@
 					<MenuItem Header="New" IsEnabled="False"/>
 					<MenuItem Header="Open" Click="Open_Map_Click"/>
 					<MenuItem Header="Save" Click="Save_Map_Click"/>
-					<MenuItem Header="Save As..." IsEnabled="False"/>
+					<MenuItem Header="Save As..." Click="Save_Map_As_Click"/>
 					<MenuItem Header="New Image" Click="New_Image_Click"/>
 				</MenuItem>
 				<MenuItem Header="Locations">
